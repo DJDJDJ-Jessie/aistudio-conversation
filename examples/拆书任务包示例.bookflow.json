@@ -1,0 +1,45 @@
+{
+  "$schema": "../docs/bookflow-package.schema.json",
+  "format": "aistudio-bookflow",
+  "version": 1,
+  "groups": [
+    {
+      "name": "示例书 · 全书拆解",
+      "model": "gemini-2.5-pro",
+      "system": {
+        "mode": "custom",
+        "text": "你是一名严谨的拆书编辑。严格根据用户提供的章节原文进行结构化拆解，使用 Markdown 输出，不补写原文没有的信息。"
+      },
+      "timeoutMinutes": 30,
+      "focusIntervalSeconds": 10,
+      "exportMode": "headings",
+      "conversations": [
+        {
+          "title": "对话 A · 第 1—3 章",
+          "turns": [
+            {"title": "第 1 章", "text": "第一章\n\n这里是第一章的示例原文。轮次正文只包含原书标题和原书正文。"},
+            {"title": "第 2 章", "text": "第二章\n\n这里是第二章的示例原文，不包含任务说明或上下文包装。"},
+            {"title": "第 3 章", "text": "第三章\n\n这里是第三章的示例原文。"}
+          ]
+        },
+        {
+          "title": "对话 B · 第 4—6 章",
+          "turns": [
+            {"title": "第 4 章", "text": "第四章\n\n这里是第四章的示例原文。"},
+            {"title": "第 5 章", "text": "第五章\n\n这里是第五章的示例原文。"},
+            {"title": "第 6 章", "text": "第六章\n\n这里是第六章的示例原文。"}
+          ]
+        },
+        {
+          "title": "对话 C · 第 7—10 章",
+          "turns": [
+            {"title": "第 7 章", "text": "第七章\n\n这里是第七章的示例原文。"},
+            {"title": "第 8 章", "text": "第八章\n\n这里是第八章的示例原文。"},
+            {"title": "第 9 章", "text": "第九章\n\n这里是第九章的示例原文。"},
+            {"title": "第 10 章", "text": "第十章\n\n这里是第十章的示例原文。"}
+          ]
+        }
+      ]
+    }
+  ]
+}

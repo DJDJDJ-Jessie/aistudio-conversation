@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/aistudio-bookflow/v1.schema.json",
+  "title": "拆书工坊任务包",
+  "description": "供拆书工坊浏览器扩展一次导入组、对话、轮次和图片的本地 JSON 格式。",
+  "type": "object",
+  "required": ["format", "version", "groups"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "format": {"const": "aistudio-bookflow"},
+    "version": {"const": 1},
+    "groups": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {"$ref": "#/$defs/group"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "system": {
+      "oneOf": [
+        {"type": "string", "maxLength": 200000},
+        {
+          "type": "object",
+          "required": ["mode"],
+          "properties": {
+            "mode": {"enum": ["custom", "preset", "none"]},
+            "text": {"type": "string", "maxLength": 200000},
+            "preset": {"type": "string", "minLength": 1, "maxLength": 300}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "attachment": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 300},
+        "type": {"enum": ["image/png", "image/jpeg", "image/webp", "image/gif"]},
+        "base64": {"type": "string", "minLength": 4},
+        "dataUrl": {"type": "string", "pattern": "^data:image/(png|jpeg|webp|gif);base64,"}
+      },
+      "oneOf": [
+        {"required": ["type", "base64"]},
+        {"required": ["dataUrl"]}
+      ],
+      "additionalProperties": false
+    },
+    "turn": {
+      "type": "object",
+      "properties": {
+        "title": {"type": "string", "maxLength": 300},
+        "text": {"type": "string", "maxLength": 5000000, "description": "本轮对应的源书原文，包含原书自身标题；不得加入任务说明、范围说明、上下文说明或人为包装标签。"},
+        "attachments": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/attachment"}
+        }
+      },
+      "anyOf": [
+        {"required": ["text"]},
+        {"required": ["attachments"]}
+      ],
+      "additionalProperties": false
+    },
+    "conversation": {
+      "type": "object",
+      "required": ["turns"],
+      "properties": {
+        "title": {"type": "string", "maxLength": 300},
+        "model": {"type": "string", "minLength": 1, "maxLength": 300},
+        "system": {"$ref": "#/$defs/system"},
+        "turns": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {"$ref": "#/$defs/turn"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "group": {
+      "type": "object",
+      "required": ["name", "conversations"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 120},
+        "model": {"type": "string", "minLength": 1, "maxLength": 300},
+        "system": {"$ref": "#/$defs/system"},
+        "timeoutMinutes": {"type": "number", "minimum": 1, "maximum": 120},
+        "focusIntervalSeconds": {"type": "number", "minimum": 2, "maximum": 120, "default": 10, "description": "执行时把 AI Studio 执行窗口切到桌面最前面的间隔秒数。"},
+        "exportMode": {"enum": ["plain", "headings"]},
+        "conversations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {"$ref": "#/$defs/conversation"}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

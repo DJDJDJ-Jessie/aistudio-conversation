@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "拆书工坊 · AI Studio 串行助手",
+  "description": "按组编排对话与轮次，通过 AI Studio 网页依次发送文字和图片，将正式回复汇总为本地 Markdown。",
+  "version": "0.2.3",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "unlimitedStorage", "alarms", "notifications", "power", "downloads"],
+  "host_permissions": ["https://aistudio.google.com/*"],
+  "background": { "service_worker": "extension/background.js", "type": "module" },
+  "action": { "default_title": "打开拆书工坊", "default_icon": {"16":"extension/icons/16.png","32":"extension/icons/32.png","128":"extension/icons/128.png"} },
+  "icons": {"16":"extension/icons/16.png","32":"extension/icons/32.png","128":"extension/icons/128.png"},
+  "content_scripts": [{
+    "matches": ["https://aistudio.google.com/*"],
+    "js": ["extension/vendor/turndown.js", "extension/vendor/turndown-plugin-gfm.js", "extension/content/dom.js", "extension/content/runner.js"],
+    "run_at": "document_idle"
+  }],
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'" }
+}

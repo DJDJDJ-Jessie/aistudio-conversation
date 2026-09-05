@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:16px sans-serif;padding:24px}ms-prompt-box,ms-chat-turn,ms-model-selector,ms-text-chunk,ms-system-instructions,ms-image-chunk,ms-thought-chunk{display:block}ms-chat-turn{border-bottom:1px solid #ddd;margin:12px 0;padding:10px}.cdk-overlay-pane{position:fixed;right:0;top:0;background:#fff;border:1px solid #ddd;padding:30px;width:400px;z-index:2}textarea{width:400px;height:80px}.file-input{display:none}.attachments img{height:45px}.material-symbols-outlined{display:inline}button{padding:10px;margin:5px}.thought-activity-host{background:#eee}ms-thought-chunk{color:#999}</style></head><body>
+<h1>AI Studio 测试页面（模拟，不会发送到 Gemini）</h1>
+<ms-model-selector><div class="model-selector-card"><button class="model-selector-trigger" aria-label="Select primary model"><span class="title">Antigravity Agent Preview</span><span data-test-id="model-description">A general-purpose autonomous agent.</span></button><div data-test-id="agent-model-container"><span>Selected model</span><button data-test-id="agent-model-badge" aria-label="Select Antigravity agent harness model">Gemini 3.8 Flash</button></div></div></ms-model-selector>
+<button aria-label="System instructions">System instructions Optional tone and style instructions for the model</button>
+<ms-chat-session id="chat"></ms-chat-session>
+<div id="optional-tools"><button aria-label="Remove Code execution">close</button><button aria-label="Remove Grounding with Google Search">close</button><button aria-label="Remove URL context">close</button></div>
+<ms-prompt-box><textarea aria-label="Enter a prompt"></textarea><div class="attachments"></div><input data-test-upload-file-input class="file-input" type="file" multiple><ms-run-button><button type="submit" aria-disabled="true"><span class="run-button-label">Run</span></button></ms-run-button></ms-prompt-box>
+<div class="cdk-live-announcer-element" aria-live="polite"></div>
+<script>
+const prompt=document.querySelector('textarea'),run=document.querySelector('ms-run-button button'),chat=document.querySelector('#chat'),uploads=document.querySelector('.attachments');
+const urlFixtureId=location.pathname.match(/\/app\/prompts\/(?!new_chat)([^/]+)/)?.[1];
+const fixtureId=urlFixtureId||sessionStorage.getItem('fixture-id')||crypto.randomUUID();sessionStorage.setItem('fixture-id',fixtureId);
+const savedConversation=JSON.parse(localStorage.getItem('fixture-conversations')||'{}')[fixtureId]||{};
+chat.innerHTML=sessionStorage.getItem('fixture-chat')||savedConversation.chat||'';
+window.events=JSON.parse(sessionStorage.getItem('fixture-events')||JSON.stringify(savedConversation.events||[]));let count=window.events.filter(e=>e.type==='send').length,system='',model='gemini-2.5-pro',busy=false;
+window.allFixtureEvents=()=>Object.values(JSON.parse(localStorage.getItem('fixture-all-events')||'{}'));
+const persistMock=()=>{sessionStorage.setItem('fixture-chat',chat.innerHTML);sessionStorage.setItem('fixture-events',JSON.stringify(window.events));const all=JSON.parse(localStorage.getItem('fixture-all-events')||'{}');all[fixtureId]=window.events;localStorage.setItem('fixture-all-events',JSON.stringify(all));const conversations=JSON.parse(localStorage.getItem('fixture-conversations')||'{}');conversations[fixtureId]={chat:chat.innerHTML,events:window.events};localStorage.setItem('fixture-conversations',JSON.stringify(conversations));};
+persistMock();
+document.querySelectorAll('#optional-tools button').forEach(button=>button.onclick=()=>{window.events.push({type:'tool-off',name:button.getAttribute('aria-label').replace('Remove ','')});button.remove();persistMock();});
+const sync=()=>run.setAttribute('aria-disabled',String(busy||(!prompt.value&&!uploads.children.length)));
+prompt.addEventListener('input',sync);
+document.querySelector('[data-test-upload-file-input]').addEventListener('change',event=>{
+ const files=[...event.target.files];window.events.push({type:'upload',names:files.map(f=>f.name),sizes:files.map(f=>f.size)});
+ setTimeout(()=>{for(const f of files){const chunk=document.createElement('ms-prompt-media'),container=document.createElement('div'),image=document.createElement('ms-prompt-image'),img=document.createElement('img'),tokens=document.createElement('span'),remove=document.createElement('button');container.dataset.testId='prompt-media-container';img.className='loaded-image';img.alt=f.name;img.src=URL.createObjectURL(f);tokens.dataset.testId='token-count';tokens.textContent='259 tokens';remove.setAttribute('aria-label','Remove media');remove.textContent='close';image.append(img);container.append(image,tokens,remove);chunk.append(container);uploads.append(chunk);}sync();},300);
+});
+document.querySelector('.model-selector-trigger').onclick=()=>{
+ const panel=document.createElement('div');panel.className='cdk-overlay-pane';panel.innerHTML='<button aria-label="Close panel">close</button><input placeholder="Search for a model or agent">'+['gemini-2.5-pro','gemini-3.1-pro-preview'].map(id=>'<button id="model-carousel-row-models/'+id+'"><span class="model-title-text">'+id+'</span></button>').join('');
+ panel.querySelector('[aria-label="Close panel"]').onclick=()=>panel.remove();
+ panel.querySelectorAll('[id]').forEach(e=>e.onclick=()=>{model=e.id.replace('model-carousel-row-models/','');document.querySelector('.model-selector-trigger .title').textContent=e.querySelector('.model-title-text').textContent;document.querySelector('[data-test-id=agent-model-container]')?.remove();panel.remove();});document.body.append(panel);
+};
+document.querySelector('button[aria-label="System instructions"]').onclick=()=>{
+ const panel=document.createElement('div');panel.className='cdk-overlay-pane';panel.innerHTML='<button aria-label="Close panel">close</button><ms-system-instructions><mat-select role="combobox" aria-expanded="false">+ Create new instruction</mat-select><textarea aria-label="System instructions"></textarea></ms-system-instructions>';
+ const text=panel.querySelector('textarea'),select=panel.querySelector('mat-select');text.value=system;
+ text.oninput=()=>system=text.value;
+ panel.querySelector('button').onclick=()=>{document.querySelector('button[aria-label="System instructions"]').textContent='System instructions '+system;panel.remove();};
+ select.onclick=()=>{if(select.getAttribute('aria-expanded')==='true')return;select.setAttribute('aria-expanded','true');for(const name of ['+ Create new instruction','经济类拆书']){const option=document.createElement('mat-option');option.setAttribute('role','option');option.setAttribute('aria-selected',String(name===select.textContent));option.style.display='block';option.textContent=name;option.onclick=()=>{select.textContent=name;select.setAttribute('aria-expanded','false');text.value=system=name==='经济类拆书'?'按原文整理成多级 Markdown 列表。':'';panel.querySelectorAll('mat-option').forEach(e=>e.remove());};panel.append(option);}};
+ document.body.append(panel);
+};
+run.onclick=()=>{
+ if(busy||run.getAttribute('aria-disabled')==='true')return;
+ if(location.pathname.endsWith('/new_chat'))history.replaceState({},'',`/app/prompts/${fixtureId}`);
+ busy=true;const index=++count,text=prompt.value,images=uploads.children.length;
+ window.events.push({type:'send',index,text,images,system,model,visibility:document.visibilityState,toolsOn:document.querySelectorAll('#optional-tools button').length,at:Date.now()});
+ prompt.value='';uploads.innerHTML='';run.querySelector('span').textContent='Stop';sync();
+ const id=crypto.randomUUID(),user=document.createElement('ms-chat-turn');user.id='user-'+id;
+ user.innerHTML='<div data-turn-role="User"></div>';user.firstChild.textContent=text;chat.append(user);
+ const thought=document.createElement('ms-chat-turn');thought.className='thought-activity-host';thought.id='thought-'+id;thought.innerHTML='<div data-turn-role="Model"><ms-thought-chunk>THOUGHT_ONLY_DO_NOT_EXPORT</ms-thought-chunk></div>';chat.append(thought);
+ const reply=document.createElement('ms-chat-turn');reply.id='reply-'+id;reply.innerHTML='<div data-turn-role="Model"><ms-text-chunk><ms-cmark-node><ul><ms-cmark-node><li><p></p><ul><ms-cmark-node><li>保留完整的多级结构</li></ms-cmark-node></ul></li></ms-cmark-node></ul></ms-cmark-node></ms-text-chunk></div>';
+ const p=reply.querySelector('p');p.textContent='尚未输出完毕';
+ setTimeout(()=>{chat.append(reply);persistMock();},100);
+ // First round deliberately has a long stable streaming gap; no final footer yet.
+ const delay=text.includes('LONG_GAP')?3600:450;
+ const complete=()=>{
+   p.textContent='完成 '+text.replace('LONG_GAP','').trim();
+   const footer=document.createElement('div');footer.className='turn-footer';footer.innerHTML='<button aria-label="Good response">thumb_up</button><button aria-label="Bad response">thumb_down</button>';
+   reply.append(footer);run.querySelector('span').textContent='Run';busy=false;sync();
+   document.querySelector('[aria-live]').textContent='Response ready.';
+   window.events.push({type:'complete',index,at:Date.now()});
+   persistMock();
+ };
+ if(text.includes('CLOSE_RECOVER_TEST')){
+   setTimeout(()=>{const error=document.createElement('div');error.setAttribute('role','alert');error.textContent='Error: simulated close recovery interruption';document.body.append(error);},450);
+   setTimeout(()=>{document.querySelector('[role=alert]')?.remove();complete();},900);
+ }else if(text.includes('RECOVER_TEST')){
+   window.completePending=complete;
+   setTimeout(()=>{const error=document.createElement('div');error.setAttribute('role','alert');error.textContent='Error: simulated network interruption';document.body.append(error);},450);
+ }else setTimeout(complete,delay);
+};
+</script></body></html>

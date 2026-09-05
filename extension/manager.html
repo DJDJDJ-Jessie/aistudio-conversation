@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>拆书工坊 · AI Studio 串行助手</title>
+  <link rel="icon" href="icons/32.png">
+  <link rel="stylesheet" href="manager.css">
+  <link rel="stylesheet" href="manager-overrides.css">
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="create-dialog">
+    <form id="create-form">
+      <span class="eyebrow">一本书，一个组</span>
+      <h2>开始一次拆书</h2>
+      <label>组名称<input name="name" required maxlength="120" placeholder="例如：周期 · 全书拆解" autocomplete="off"></label>
+      <label>要新开几个对话<input name="conversationCount" type="number" min="1" max="30" value="3" required></label>
+      <div class="dialog-section-heading"><strong>每个对话包含几轮</strong><span>按 A → B → C 的顺序串行执行</span></div>
+      <div id="conversation-rounds" class="conversation-rounds"></div>
+      <p class="hint">例如 A 设 3 轮、B 设 3 轮、C 设 4 轮，共 10 轮。创建后仍可继续添加、删除和调整对话或轮次。</p>
+      <p class="hint">最终下载文件使用组名称，例如「周期 · 全书拆解.md」。</p>
+      <div class="dialog-actions"><button type="button" data-close-dialog>取消</button><button class="primary" type="submit">创建组</button></div>
+    </form>
+  </dialog>
+  <dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">确认删除？</h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel">取消</button><button class="danger-button" value="confirm">删除</button></div></form></dialog>
+  <input id="image-picker" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+  <input id="chapter-picker" type="file" accept=".md,.txt,.markdown" multiple hidden>
+  <input id="bookflow-package-picker" type="file" accept=".json,.bookflow.json,application/json" hidden>
+  <script type="module" src="manager.js"></script>
+</body>
+</html>

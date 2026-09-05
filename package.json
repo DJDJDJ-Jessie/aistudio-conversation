@@ -1,0 +1,17 @@
+{
+  "name": "aistudio-bookflow",
+  "version": "0.2.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "package": "python scripts/package.py"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "playwright": "1.55.1",
+    "turndown": "^7.2.1",
+    "turndown-plugin-gfm": "^1.0.2"
+  }
+}
