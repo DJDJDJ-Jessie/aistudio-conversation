@@ -7,8 +7,8 @@
       "name": "示例书 · 全书拆解",
       "model": "gemini-2.5-pro",
       "system": {
-        "mode": "custom",
-        "text": "你是一名严谨的拆书编辑。严格根据用户提供的章节原文进行结构化拆解，使用 Markdown 输出，不补写原文没有的信息。"
+        "mode": "preset",
+        "preset": "经济类拆书"
       },
       "timeoutMinutes": 30,
       "focusIntervalSeconds": 10,
